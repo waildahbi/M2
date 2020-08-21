@@ -1,0 +1,62 @@
+#!/usr/bin/python3
+# coding: utf-8
+
+import fileinput
+import re
+import string
+import itertools
+import csv
+import glob, os
+from os import path
+'''
+##=============================
+Ce script permet de transformer plusieurs fichiers dont le contenu est sous forme de : 'mention	tag|genre|nombre|N°phrase' à un fichier csv 
+##=============================
+'''
+
+#La fonction to_csv reçoit le nom d'un fichier comme argument et ajoute son contenu au fichier csv
+def to_csv(p):
+	fin = open('/home/wail/Documents/mind_the_gap_v1.2/data/french/Tmp3/' + p, "r")
+	# Vérifier si le fichier csv existe sinon le créer
+	if not path.exists("/home/wail/Documents/mind_the_gap_v1.2/data/french/Tmp3/mentions.csv"):
+		csv_file = open("/home/wail/Documents/mind_the_gap_v1.2/data/french/Tmp3/mentions.csv", "w")
+		fieldnames = ["mention", "fichier", "annotation", "genre", "nombre", "N°Phrase", "CT"] 
+		writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+		writer.writeheader()
+	else :
+		csv_file = open("/home/wail/Documents/mind_the_gap_v1.2/data/french/Tmp3/mentions.csv", "a")
+		fieldnames = ["mention", "fichier", "annotation", "genre", "nombre", "N°Phrase", "CT"] 
+		writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
+	#Lire le contenu du fichier
+	data = fin.readlines()
+	cp = 0
+	CT = 1
+	#Parcours du fichier ligne par ligne
+	for line in data:
+		if line  == "\n":
+			cp = cp + 1
+			if cp == 3:
+				CT = CT + 1 #Calcul du numéro de chaine de coréférence
+				cp = 0
+		if "\t" in line:
+			mention = line.split("\t")[0]
+			test = line.split("\t")[1]
+			if len(test.split("|")) == 4:
+				annotation = test.split("|")[0]
+				genre = test.split("|")[1]
+				nombre = test.split("|")[2]
+				phrase = test.split("|")[3]
+				phrase = phrase.rstrip()
+				writer.writerow({"mention": mention, "fichier":p,"annotation": annotation, "genre":genre, "nombre":nombre, "N°Phrase":phrase, "CT":CT})
+			else :
+				continue
+		else :
+			continue
+	csv_file.close()	
+	fin.close()
+#Parcours de tous les fichiers dans un dossier
+directory = '/home/wail/Documents/mind_the_gap_v1.2/data/french/Tmp3/'
+for filename in os.listdir(directory):
+	to_csv(filename)
+	
+
